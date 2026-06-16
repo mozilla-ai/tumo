@@ -1,0 +1,6 @@
+# Generated / downloaded — should not be committed.
+.venv/
+__pycache__/
+dataset/          # recreate with: uv run prepare_dataset.py
+runs/             # training/eval/export outputs
+*.pt              # downloaded base model + trained weights

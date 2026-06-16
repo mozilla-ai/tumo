@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# uv project definition for the Rock-Paper-Scissors YOLO11 teaching project.
+#
+# `uv` manages BOTH the Python interpreter and the libraries for us:
+#   - the interpreter version is pinned in the `.python-version` file (3.12),
+#     because Ultralytics / PyTorch do not yet ship wheels for Python 3.14.
+#   - the libraries are listed below under `dependencies`.
+#
+# Common commands:
+#   uv sync                 -> create the virtual env and install everything
+#   uv run train.py ...     -> run a script inside that env (no manual activate)
+# ---------------------------------------------------------------------------
+[project]
+name = "rock-paper-scissors-yolo"
+version = "0.1.0"
+description = "Train, evaluate and play Rock-Paper-Scissors with a YOLO11 model on a Raspberry Pi 5."
+readme = "README.md"
+
+# Pin to Python 3.12 (matches .python-version). The lower bound keeps uv from
+# accidentally selecting the system 3.14 interpreter, which Ultralytics cannot use yet.
+requires-python = ">=3.12,<3.13"
+
+dependencies = [
+    # Ultralytics is the official YOLO11 package. Installing it also pulls in its
+    # heavy friends automatically: torch (the deep-learning engine), torchvision,
+    # opencv-python (camera + image display), numpy, pyyaml, matplotlib, etc.
+    "ultralytics>=8.3.0",
+    # NCNN is the lightweight inference engine we export to for the Raspberry Pi.
+    # `export.py` needs these two packages to perform the PyTorch -> NCNN conversion:
+    #   ncnn -> the runtime,   pnnx -> the PyTorch-to-NCNN converter tool.
+    "ncnn>=1.0.20240410",
+    "pnnx>=20240819",
+]
+
+# NOTE on the Raspberry Pi camera:
+#   The Pi camera is driven by `picamera2`, which is a SYSTEM package on
+#   Raspberry Pi OS (installed with `sudo apt install -y python3-picamera2`),
+#   NOT a normal PyPI wheel. We therefore do *not* list it here so that
+#   `uv sync` keeps working on the Mac. On the Pi, see README.md for the
+#   recommended way to expose the system picamera2 to the project.
