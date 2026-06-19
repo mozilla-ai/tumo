@@ -30,6 +30,11 @@ dependencies = [
     #   ncnn -> the runtime,   pnnx -> the PyTorch-to-NCNN converter tool.
     "ncnn>=1.0.20240410",
     "pnnx>=20240819",
+    # torch / torchvision are pulled in by ultralytics anyway, but we list them
+    # explicitly here so the [tool.uv.sources] override below actually applies:
+    # uv only honours `sources` for DIRECT dependencies, not transitive ones.
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
 ]
 
 # NOTE on the Raspberry Pi camera:
