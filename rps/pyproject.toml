@@ -2,8 +2,10 @@
 # uv project definition for the Rock-Paper-Scissors YOLO11 teaching project.
 #
 # `uv` manages BOTH the Python interpreter and the libraries for us:
-#   - the interpreter version is pinned in the `.python-version` file (3.12),
-#     because Ultralytics / PyTorch do not yet ship wheels for Python 3.14.
+#   - the interpreter version is pinned in the `.python-version` file (3.11),
+#     chosen so the SAME interpreter runs on the Mac and the Pi. On the Pi this
+#     matches the system Python that the apt `python3-picamera2` package is built
+#     for, so the venv can reuse it via --system-site-packages (see README).
 #   - the libraries are listed below under `dependencies`.
 #
 # Common commands:
@@ -16,9 +18,12 @@ version = "0.1.0"
 description = "Train, evaluate and play Rock-Paper-Scissors with a YOLO11 model on a Raspberry Pi 5."
 readme = "README.md"
 
-# Pin to Python 3.12 (matches .python-version). The lower bound keeps uv from
-# accidentally selecting the system 3.14 interpreter, which Ultralytics cannot use yet.
-requires-python = ">=3.12,<3.13"
+# Pin to Python 3.11 (matches .python-version) on BOTH platforms. On the Pi this is
+# the system interpreter the apt picamera2/libcamera bindings are built for; on the
+# Mac uv fetches a managed 3.11. Identical interpreters => the same wheels resolve
+# everywhere and the code behaves the same on both machines. (All deps ship cp311
+# wheels for macOS-arm64 and linux-aarch64, and the code uses no 3.12-only features.)
+requires-python = ">=3.11,<3.12"
 
 dependencies = [
     # Ultralytics is the official YOLO11 package. Installing it also pulls in its
@@ -35,14 +40,23 @@ dependencies = [
     # uv only honours `sources` for DIRECT dependencies, not transitive ones.
     "torch>=2.0.0",
     "torchvision>=0.15.0",
+    # picamera2 (inherited from the system via --system-site-packages on the Pi) pulls
+    # in the compiled `simplejpeg` module. The apt copy is built against NumPy 1.x, but
+    # torch needs NumPy 2.x — incompatible ABIs in one interpreter. We install a
+    # NumPy-2.x simplejpeg wheel here (Linux only) so it shadows the system one and the
+    # whole camera+ML stack stays consistent on NumPy 2.x.
+    "simplejpeg>=1.8 ; sys_platform == 'linux'",
 ]
 
 # NOTE on the Raspberry Pi camera:
-#   The Pi camera is driven by `picamera2`, which is a SYSTEM package on
-#   Raspberry Pi OS (installed with `sudo apt install -y python3-picamera2`),
-#   NOT a normal PyPI wheel. We therefore do *not* list it here so that
-#   `uv sync` keeps working on the Mac. On the Pi, see README.md for the
-#   recommended way to expose the system picamera2 to the project.
+#   The Pi camera is driven by `picamera2`, which depends on the COMPILED
+#   `libcamera`/`pykms` Python bindings. Those are not on PyPI — they ship via apt
+#   (`python3-picamera2`, pre-installed on Raspberry Pi OS) and are built for the
+#   system Python 3.11. We deliberately do NOT list picamera2 here. Instead, on the
+#   Pi the venv is created on the system 3.11 interpreter WITH --system-site-packages,
+#   so it transparently reuses the apt picamera2 + libcamera (no compiling, exact
+#   hardware match). On the Mac there is no Pi camera, so play.py falls back to the
+#   OpenCV webcam backend and none of this applies. See README.md for Pi setup.
 
 # ---------------------------------------------------------------------------
 # CPU-only PyTorch on the Raspberry Pi (Linux / aarch64).

@@ -36,15 +36,17 @@ computer-vision project.
 
 This project uses [`uv`](https://docs.astral.sh/uv/) to manage **both** the
 Python version and the libraries. The system Python (3.14) is too new for
-PyTorch/Ultralytics, so `uv` pins **Python 3.12** automatically (see
-`.python-version`).
+PyTorch/Ultralytics. We pin **Python 3.11** (see `.python-version`) — the SAME
+interpreter the Pi uses, so both machines resolve the same wheels and the code
+behaves identically. (On the Pi, 3.11 is also what the system picamera2/libcamera
+packages are built for; see step 6.)
 
 ```bash
 cd /Users/mala/workspace/yolo
 uv sync          # creates the virtual env and installs everything
 ```
 
-`uv sync` reads `pyproject.toml`, downloads Python 3.12 if needed, and installs
+`uv sync` reads `pyproject.toml`, downloads Python 3.11 if needed, and installs
 Ultralytics (which brings PyTorch, OpenCV, NumPy, …) plus the NCNN export tools.
 
 You never need to "activate" the environment — just prefix commands with
@@ -130,17 +132,26 @@ uv run play.py --camera opencv
 
 1. Copy the NCNN folder to the Pi:
    ```bash
-   scp -r runs/detect/rps_train/weights/best_ncnn_model pi@raspberrypi.local:~/yolo/
+   scp -r runs/detect/rps_train/weights/best_ncnn_model pi@raspberrypi.local:~/workspace/tumo/rps/
    ```
-2. On the Pi, install the system camera library and Ultralytics:
+2. On the Pi, build the environment. picamera2 + libcamera ship pre-installed on
+   Raspberry Pi OS for the **system Python 3.11**, so we base the venv on that
+   interpreter and let it see the system packages (no compiling libcamera):
    ```bash
    sudo apt update
-   sudo apt install -y python3-picamera2
-   pip install ultralytics            # in a venv that can see the system picamera2
+   sudo apt install -y python3-picamera2          # usually already present
+   cd ~/workspace/tumo/rps
+   export UV_PYTHON_PREFERENCE=only-system         # use system 3.11, do not download one
+   uv venv --python /usr/bin/python3.11 --system-site-packages
+   uv sync                                         # CPU torch, ultralytics, simplejpeg, …
    ```
+   `--system-site-packages` lets the venv reuse the apt picamera2/libcamera, while
+   `uv sync` adds the CPU-only PyTorch and a NumPy-2.x `simplejpeg` that shadows the
+   older apt one (so the camera and ML stacks agree on NumPy 2.x — otherwise picamera2
+   fails to import next to torch).
 3. Run the game:
    ```bash
-   python play.py --weights ~/yolo/best_ncnn_model --camera picamera2
+   uv run play.py --weights ~/workspace/tumo/rps/best_ncnn_model --camera picamera2
    ```
 
 **How a round works:** press *Enter*, a `3 · 2 · 1 · shoot!` countdown gives you
@@ -173,8 +184,8 @@ you try again. Type `q` then *Enter* to quit.
 ```
 yolo/
 ├── README.md            ← you are here
-├── pyproject.toml       ← uv project: Python 3.12 + dependencies
-├── .python-version      ← pins Python 3.12
+├── pyproject.toml       ← uv project: Python 3.11 + dependencies
+├── .python-version      ← pins Python 3.11
 ├── config.py            ← shared settings
 ├── game_logic.py        ← pure game rules (self-testing)
 ├── prepare_dataset.py   ← unpack + fix the dataset
