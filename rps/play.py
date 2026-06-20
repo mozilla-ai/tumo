@@ -14,7 +14,11 @@ Where it runs
     webcam. This needs no extra setup (OpenCV ships with Ultralytics).
 
 The model can be either a PyTorch file (best.pt) or, on the Pi, the faster NCNN
-folder produced by export.py — Ultralytics loads both the same way.
+folder produced by export.py — Ultralytics loads both the same way. By default we
+pick the NCNN export automatically when one exists (it is much faster on the Pi).
+
+Each round captures a short burst of frames (default 5) and takes the class seen
+most often, which is much steadier than relying on a single frame.
 
 Run it with:
     uv run play.py --camera opencv                 # test on the Mac webcam
@@ -28,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import time
+from collections import Counter, defaultdict
 
 from ultralytics import YOLO
 
@@ -134,10 +139,47 @@ def detect_hand(model: YOLO, frame, conf_threshold: float, device: str):
     return config.CLASS_NAMES[class_id], confidence
 
 
+def detect_hand_burst(model, camera, frames, conf_threshold, device):
+    """Capture several frames in quick succession and combine them by voting.
+
+    Why not a single frame? One frame can be motion-blurred or caught mid-move,
+    which makes readings noisy. Looking at a short burst and taking the class
+    seen *most often* (ties broken by total confidence) is far steadier.
+
+    Returns ``(class_name, avg_confidence, votes)`` for the winning class, where
+    ``votes`` is a ``{class_name: count}`` dict, or ``None`` if no class showed up
+    in at least half the frames (our "error" case — too unsure to call).
+    """
+    counts: Counter = Counter()          # how many frames saw each class
+    conf_sum: dict = defaultdict(float)  # total confidence per class (for tie-breaks)
+
+    for _ in range(frames):
+        result = detect_hand(model, camera.read(), conf_threshold, device)
+        if result is not None:
+            name, conf = result
+            counts[name] += 1
+            conf_sum[name] += conf
+
+    if not counts:
+        return None  # nothing confident in any frame
+
+    # Winner = most frequent class; if two tie on count, the higher total
+    # confidence wins.
+    winner = max(counts, key=lambda name: (counts[name], conf_sum[name]))
+
+    # Require the winner in at least half the frames, otherwise it is too shaky
+    # to trust (e.g. 2 votes Rock, 2 votes Scissors, 1 nothing -> error).
+    if counts[winner] < (frames + 1) // 2:
+        return None
+
+    avg_confidence = conf_sum[winner] / counts[winner]
+    return winner, avg_confidence, dict(counts)
+
+
 # ===========================================================================
 # The game loop
 # ===========================================================================
-def play_round(model, camera, conf_threshold, device) -> str | None:
+def play_round(model, camera, conf_threshold, device, frames) -> str | None:
     """Play exactly one round. Returns "win"/"lose"/"tie", or None on error."""
     # A short countdown gives the player time to form their shape.
     for n in (3, 2, 1):
@@ -145,21 +187,22 @@ def play_round(model, camera, conf_threshold, device) -> str | None:
         time.sleep(0.8)
     print("shoot!")
 
-    frame = camera.read()
-    detection = detect_hand(model, frame, conf_threshold, device)
+    # Capture a short burst and vote, instead of trusting one (often noisy) frame.
+    detection = detect_hand_burst(model, camera, frames, conf_threshold, device)
 
     # No confident detection -> show the "error" outcome and let them retry.
     if detection is None:
         print("  🤖 error: I couldn't see a clear hand. Try again!")
         return None
 
-    class_name, confidence = detection
+    class_name, confidence, votes = detection
     player_move = detection_to_move(class_name)      # e.g. "Rock" -> "rock"
     computer_move = random_move()
     outcome = decide_winner(player_move, computer_move)
 
     # Friendly summary of the round.
-    print(f"  👋 You played : {player_move}  (confidence {confidence:.0%})")
+    print(f"  👋 You played : {player_move}  "
+          f"(confidence {confidence:.0%}, seen in {votes[class_name]}/{frames} frames)")
     print(f"  🤖 I played   : {computer_move}")
     verdict = {"win": "You win! 🎉", "lose": "I win! 🤖", "tie": "It's a tie 🤝"}[outcome]
     print(f"  >> {verdict}")
@@ -170,11 +213,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Play Rock-Paper-Scissors against the YOLO11 model.")
     parser.add_argument("--weights", default=None,
                         help="Model to play with: a best.pt file or an NCNN folder "
-                             "(default: newest trained best.pt).")
+                             "(default: newest NCNN export if present, else best.pt).")
     parser.add_argument("--camera", default="picamera2", choices=["picamera2", "opencv"],
                         help="Camera backend (default: %(default)s; use opencv to test on a laptop).")
     parser.add_argument("--conf", type=float, default=config.CONF_THRESHOLD,
                         help="Minimum confidence to accept a detection (default: %(default)s).")
+    parser.add_argument("--frames", type=int, default=config.PLAY_FRAMES,
+                        help="Frames to capture and vote over each round (default: %(default)s).")
     parser.add_argument("--rounds", type=int, default=0,
                         help="Number of rounds to play; 0 means keep playing until you quit.")
     parser.add_argument("--device", default=config.get_device(),
@@ -185,7 +230,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    weights = args.weights or config.default_weights()
+    weights = args.weights or config.default_play_weights()
     if not config.Path(str(weights)).exists():
         raise SystemExit(
             f"Model not found at:\n  {weights}\n"
@@ -215,7 +260,7 @@ def main() -> None:
             if command == "q":
                 break
 
-            outcome = play_round(model, camera, args.conf, args.device)
+            outcome = play_round(model, camera, args.conf, args.device, args.frames)
             if outcome is None:
                 # Errors don't count as a round; let the player try again.
                 continue

@@ -79,6 +79,12 @@ BATCH: int = -1
 # Anything below this is treated as "no hand detected" -> the game shows "error".
 CONF_THRESHOLD: float = 0.50
 
+# A single frame can be blurry or caught mid-move, giving noisy results. At play
+# time we instead capture this many frames in quick succession and take the class
+# seen most often (a majority vote). 5 frames is ~0.85 s with the NCNN model on a
+# Raspberry Pi 5.
+PLAY_FRAMES: int = 5
+
 
 # ---------------------------------------------------------------------------
 # 4. Picking the hardware to run on
@@ -126,3 +132,19 @@ def default_weights() -> Path:
     if candidates:
         return candidates[-1]  # the last one is the most recently modified
     return detect_dir / "rps_train" / "weights" / "best.pt"
+
+
+def default_play_weights() -> Path:
+    """Return the best weights to PLAY with, preferring the fast NCNN export.
+
+    `export.py` converts ``best.pt`` into a ``best_ncnn_model`` folder that runs
+    roughly 5x faster on the Pi's CPU, so at play time we use the newest NCNN
+    export if one exists. If you have not exported yet, we fall back to the newest
+    ``best.pt`` so the game still works.
+    """
+    detect_dir = RUNS_DIR / "detect"
+    ncnn = sorted(detect_dir.glob("rps_train*/weights/best_ncnn_model"),
+                  key=lambda p: p.stat().st_mtime)
+    if ncnn:
+        return ncnn[-1]
+    return default_weights()  # no NCNN export yet -> use the PyTorch weights

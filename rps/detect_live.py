@@ -256,7 +256,7 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Live web viewer for the RPS YOLO model.")
     p.add_argument("--weights", default=None,
                    help="Model to run: a best.pt file or an NCNN folder "
-                        "(default: newest trained best.pt).")
+                        "(default: newest NCNN export if present, else best.pt).")
     p.add_argument("--camera", default="picamera2", choices=["picamera2", "opencv"],
                    help="Camera backend (default: %(default)s; use opencv on a laptop).")
     p.add_argument("--conf", type=float, default=0.25,
@@ -278,7 +278,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    weights = args.weights or config.default_weights()
+    weights = args.weights or config.default_play_weights()
     if not config.Path(str(weights)).exists():
         raise SystemExit(
             f"Model not found at:\n  {weights}\n"
