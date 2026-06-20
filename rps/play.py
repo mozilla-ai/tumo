@@ -77,8 +77,6 @@ class PiCamera:
                 "(Or test on a laptop with `--camera opencv`.)"
             ) from exc
 
-        import cv2
-        self._cv2 = cv2
         self._picam = Picamera2()
         # Configure a still-image capture at our model's input size.
         cfg = self._picam.create_preview_configuration(
@@ -89,10 +87,12 @@ class PiCamera:
         time.sleep(1.0)  # give the sensor a moment to adjust exposure
 
     def read(self):
-        # Picamera2 hands back an RGB image; OpenCV/Ultralytics expect BGR, so
-        # we flip the colour channels to keep the model's colours correct.
-        rgb = self._picam.capture_array()
-        return self._cv2.cvtColor(rgb, self._cv2.COLOR_RGB2BGR)
+        # IMPORTANT picamera2 quirk: its "RGB888" format actually returns the
+        # channels in B,G,R order in memory — already exactly what OpenCV and
+        # Ultralytics expect. So we return the array as-is. (Verified on hardware:
+        # adding a cvtColor here SWAPS red/blue, which both tints the preview blue
+        # AND feeds the model wrong colours, hurting detection accuracy.)
+        return self._picam.capture_array()
 
     def close(self):
         self._picam.stop()
