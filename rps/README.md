@@ -152,9 +152,9 @@ uv run play.py --camera opencv
 1. Copy the NCNN folder to the Pi, into the same `runs/…` location it has on the
    Mac so `play.py` finds it automatically (no `--weights` needed later):
    ```bash
-   ssh mala@raspberrypi.local 'mkdir -p ~/workspace/tumo/rps/runs/detect/rps_train/weights'
+   ssh pi@raspberrypi.local 'mkdir -p ~/workspace/tumo/rps/runs/detect/rps_train/weights'
    scp -r runs/detect/rps_train/weights/best_ncnn_model \
-       mala@raspberrypi.local:~/workspace/tumo/rps/runs/detect/rps_train/weights/
+       pi@raspberrypi.local:~/workspace/tumo/rps/runs/detect/rps_train/weights/
    ```
 2. On the Pi, build the environment. picamera2 + libcamera ship pre-installed on
    Raspberry Pi OS for the **system Python 3.11**, so we base the venv on that
