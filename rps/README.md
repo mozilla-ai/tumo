@@ -16,33 +16,52 @@ computer-vision project.
    dataset (Roboflow)                          Raspberry Pi 5 + camera
         │                                              ▲
         ▼                                              │ copy NCNN model
-  prepare_dataset.py ─▶ train.py ─▶ evaluate.py ─▶ export.py ─▶ play.py
-   (unpack & fix)      (learn)     (measure)      (make fast)   (play!)
+  prepare_dataset.py -> train.py -> evaluate.py -> export.py -> play.py
+   (unpack & fix)       (learn)      (measure)    (make fast)   (play!)
 ```
 
 | Script               | What it does                                                            |
 |----------------------|-------------------------------------------------------------------------|
 | `config.py`          | Shared settings: class names, paths, defaults, device selection.        |
-| `game_logic.py`      | The pure rules of the game (no ML, no camera). Run it to self-test.      |
-| `prepare_dataset.py` | Unzips the dataset and writes a clean `data.yaml`.                       |
-| `train.py`           | Trains `yolo11n` on the images (uses the Mac's GPU via MPS).             |
+| `game_logic.py`      | The pure rules of the game (no ML, no camera). Run it to self-test.     |
+| `prepare_dataset.py` | Unzips the dataset and writes a clean `data.yaml`.                      |
+| `train.py`           | Trains `yolo11n` on the images (uses the Mac's GPU via MPS).            |
 | `evaluate.py`        | Measures accuracy (mAP, per-class) and saves example predictions.       |
 | `export.py`          | Converts the trained model to **NCNN** for fast inference on the Pi.    |
-| `play.py`            | Captures a frame, detects your hand, plays a random move, declares a winner. |
+| `play.py`            | Captures a burst of frames, votes on your hand, plays a random move, declares a winner. |
+| `detect_live.py`     | Live web viewer of the detections, for debugging (Mac webcam or Pi camera). |
 
 ---
 
-## 1. Setup (on the Mac, with `uv`)
+## Where each step runs
+
+This project spans **two machines**:
+
+* **On the Mac** — prepare the data, train, evaluate and export the model
+  (steps 1–5). You can also test the game with the laptop webcam.
+* **On the Raspberry Pi 5** — run the game (`play.py`) and the live debugger
+  (`detect_live.py`) with the real camera (steps 6–7).
+
+Crucially, the two have **different environment setups**: the Mac uses a
+uv-managed Python, while the Pi reuses its *system* Python so the venv can see the
+pre-installed camera libraries. Follow **§1 for the Mac** and **§6 (step 2) for
+the Pi** — don't run the Mac setup on the Pi or the camera won't import.
+
+---
+
+## 1. Setup — on the Mac (with `uv`)
+
+> **This section is for the Mac.** The **Pi is set up differently** (it needs the
+> system Python so picamera2/libcamera work) — see **§6, step 2**.
 
 This project uses [`uv`](https://docs.astral.sh/uv/) to manage **both** the
 Python version and the libraries. The system Python (3.14) is too new for
-PyTorch/Ultralytics. We pin **Python 3.11** (see `.python-version`) — the SAME
-interpreter the Pi uses, so both machines resolve the same wheels and the code
-behaves identically. (On the Pi, 3.11 is also what the system picamera2/libcamera
-packages are built for; see step 6.)
+PyTorch/Ultralytics, so on the Mac `uv` installs a managed **Python 3.11** (see
+`.python-version`) — the same *version* the Pi runs, so both resolve the same
+wheels and the code behaves identically.
 
 ```bash
-cd /Users/mala/workspace/yolo
+cd ~/workspace/tumo/rps
 uv sync          # creates the virtual env and installs everything
 ```
 
@@ -130,9 +149,12 @@ uv run play.py --camera opencv
 
 **On the Raspberry Pi 5:**
 
-1. Copy the NCNN folder to the Pi:
+1. Copy the NCNN folder to the Pi, into the same `runs/…` location it has on the
+   Mac so `play.py` finds it automatically (no `--weights` needed later):
    ```bash
-   scp -r runs/detect/rps_train/weights/best_ncnn_model pi@raspberrypi.local:~/workspace/tumo/rps/
+   ssh mala@raspberrypi.local 'mkdir -p ~/workspace/tumo/rps/runs/detect/rps_train/weights'
+   scp -r runs/detect/rps_train/weights/best_ncnn_model \
+       mala@raspberrypi.local:~/workspace/tumo/rps/runs/detect/rps_train/weights/
    ```
 2. On the Pi, build the environment. picamera2 + libcamera ship pre-installed on
    Raspberry Pi OS for the **system Python 3.11**, so we base the venv on that
@@ -149,20 +171,63 @@ uv run play.py --camera opencv
    `uv sync` adds the CPU-only PyTorch and a NumPy-2.x `simplejpeg` that shadows the
    older apt one (so the camera and ML stacks agree on NumPy 2.x — otherwise picamera2
    fails to import next to torch).
-3. Run the game:
+
+   > **Don't drop `--python /usr/bin/python3.11`.** It must be the *system*
+   > interpreter — that is the only one that can see the apt camera packages.
+   > `--system-site-packages` only exposes the *base* interpreter's packages, so if
+   > you let `uv` download its own Python the camera libs stay invisible and
+   > `import picamera2` fails (verified on this Pi). `UV_PYTHON_PREFERENCE=only-system`
+   > guards against that by forbidding a downloaded interpreter.
+   >
+   > **And if you ever delete `.venv`, re-run this `uv venv …` line before
+   > `uv sync`.** A bare `uv sync` on its own recreates the venv *without*
+   > `--system-site-packages`, so the camera silently stops importing.
+3. Run the game. The NCNN export and the Pi camera are now the defaults, so no
+   flags are needed:
    ```bash
-   uv run play.py --weights ~/workspace/tumo/rps/best_ncnn_model --camera picamera2
+   uv run play.py
    ```
 
 **How a round works:** press *Enter*, a `3 · 2 · 1 · shoot!` countdown gives you
-time to make a shape, the camera grabs one frame, the model picks the most
-confident detection, and the computer plays a random move. If no hand is seen
-clearly (confidence below `--conf`, default `0.50`), it shows **error** and lets
-you try again. Type `q` then *Enter* to quit.
+time to make a shape, then the camera grabs a short **burst of frames** (default
+5, set with `--frames`) and the model *votes* — the class seen in the most frames
+wins (ties broken by confidence). The computer then plays a random move. If no
+class is seen confidently (above `--conf`, default `0.50`) in at least half the
+frames, it shows **error** and lets you try again. Type `q` then *Enter* to quit.
+Voting across several frames is much steadier than trusting one, possibly blurry,
+shot.
 
 > **Why does `play.py` default to `picamera2`?** Because that is what runs on the
 > Pi, the real target. The `--camera opencv` option exists purely so students can
 > develop and test on a laptop.
+
+---
+
+## 7. Debug live (see what the model sees)
+
+When the game keeps saying "error" and you cannot tell why, `detect_live.py`
+streams the camera with the detections drawn on top, viewable in any web browser
+— ideal for the headless Pi (open it from your Mac).
+
+```bash
+# On the Pi (uses the NCNN model + Pi camera by default):
+uv run detect_live.py
+#   then browse to   http://raspberrypi.local:8000
+
+# On the Mac, using the built-in webcam:
+uv run detect_live.py --camera opencv
+#   then browse to   http://localhost:8000
+```
+
+Each detection box is coloured by whether it would count in the real game:
+
+* **green** — confidence ≥ the game threshold (`--play-conf`, default `0.50`): this *would* be played.
+* **orange** — detected but below that threshold: the game ignores it and shows "error".
+
+Because it also draws boxes well below the threshold (`--conf`, default `0.25`),
+you can see *why* a hand fails — e.g. "Scissors 0.34" in orange means the model
+sees it but is not confident enough, usually a lighting, distance or angle issue.
+The header shows live FPS and the current verdict. Press Ctrl-C to stop.
 
 ---
 
@@ -182,7 +247,7 @@ you try again. Type `q` then *Enter* to quit.
 ## Project layout
 
 ```
-yolo/
+tumo/rps/
 ├── README.md            ← you are here
 ├── pyproject.toml       ← uv project: Python 3.11 + dependencies
 ├── .python-version      ← pins Python 3.11
@@ -193,6 +258,7 @@ yolo/
 ├── evaluate.py          ← measure accuracy
 ├── export.py            ← convert to NCNN for the Pi
 ├── play.py              ← the game loop
+├── detect_live.py       ← live detection viewer (web UI) for debugging
 ├── dataset/             ← created by prepare_dataset.py
 └── runs/                ← created by train/evaluate/export (weights, plots)
 ```
