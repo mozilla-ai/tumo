@@ -38,8 +38,16 @@ dependencies = [
     # torch / torchvision are pulled in by ultralytics anyway, but we list them
     # explicitly here so the [tool.uv.sources] override below actually applies:
     # uv only honours `sources` for DIRECT dependencies, not transitive ones.
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
+    #
+    # On the Mac: normal PyPI wheels (flexible version, includes MPS support).
+    "torch>=2.0.0 ; sys_platform != 'linux'",
+    "torchvision>=0.15.0 ; sys_platform != 'linux'",
+    # On the Pi (Linux): pin the exact "+cpu" CPU-index builds. The CPU index also
+    # ships a Windows-ARM64 build tagged "+df56172" whose PEP 440 local version sorts
+    # ABOVE "+cpu", so an UNPINNED resolve picks 0.27.1+df56172 — which has no Linux
+    # wheel and makes uv sync fail. Pinning "+cpu" forces the correct build.
+    "torch==2.12.1+cpu ; sys_platform == 'linux'",
+    "torchvision==0.27.1+cpu ; sys_platform == 'linux'",
     # picamera2 (inherited from the system via --system-site-packages on the Pi) pulls
     # in the compiled `simplejpeg` module. The apt copy is built against NumPy 1.x, but
     # torch needs NumPy 2.x — incompatible ABIs in one interpreter. We install a
