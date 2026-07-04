@@ -117,7 +117,7 @@ Useful flags: `--epochs`, `--batch`, `--imgsz`, `--device`, `--resume`
 
 ```bash
 uv run evaluate.py              # scores the test split (unseen images)
-uv run evaluate.py --split valid
+uv run evaluate.py --split val
 ```
 
 Prints the headline accuracy (mAP50, mAP50-95, precision, recall), a per-class
