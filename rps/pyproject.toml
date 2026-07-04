@@ -2,10 +2,11 @@
 # uv project definition for the Rock-Paper-Scissors YOLO11 teaching project.
 #
 # `uv` manages BOTH the Python interpreter and the libraries for us:
-#   - the interpreter version is pinned in the `.python-version` file (3.11),
-#     chosen so the SAME interpreter runs on the Mac and the Pi. On the Pi this
-#     matches the system Python that the apt `python3-picamera2` package is built
-#     for, so the venv can reuse it via --system-site-packages (see README).
+#   - the interpreter version is pinned in the `.python-version` file (3.13) as the
+#     default (used on the Mac and current Raspberry Pi OS). On the Pi the venv is built
+#     on the *system* Python — whatever the apt `python3-picamera2` is built for (3.13 on
+#     Trixie, 3.11 on older Bookworm) — via --system-site-packages (see README). The
+#     `requires-python` below allows 3.11–3.13 to cover both.
 #   - the libraries are listed below under `dependencies`.
 #
 # Common commands:
@@ -18,12 +19,13 @@ version = "0.1.0"
 description = "Train, evaluate and play Rock-Paper-Scissors with a YOLO11 model on a Raspberry Pi 5."
 readme = "README.md"
 
-# Pin to Python 3.11 (matches .python-version) on BOTH platforms. On the Pi this is
-# the system interpreter the apt picamera2/libcamera bindings are built for; on the
-# Mac uv fetches a managed 3.11. Identical interpreters => the same wheels resolve
-# everywhere and the code behaves the same on both machines. (All deps ship cp311
-# wheels for macOS-arm64 and linux-aarch64, and the code uses no 3.12-only features.)
-requires-python = ">=3.11,<3.12"
+# Supported Python: 3.11–3.13. `.python-version` pins 3.13 as the DEFAULT (what uv
+# installs on the Mac, and what current Raspberry Pi OS / Debian Trixie ships). We allow
+# down to 3.11 so an older Bookworm Pi (system Python 3.11) works too — on the Pi the
+# venv is built on the *system* interpreter (see README), so it matches whatever that Pi
+# ships and can reuse the apt picamera2 built for it. All deps provide wheels across this
+# range for macOS-arm64 and linux-aarch64, and the code uses no version-specific features.
+requires-python = ">=3.11,<3.14"
 
 dependencies = [
     # Ultralytics is the official YOLO11 package. Installing it also pulls in its
@@ -49,10 +51,12 @@ dependencies = [
     "torch==2.12.1+cpu ; sys_platform == 'linux'",
     "torchvision==0.27.1+cpu ; sys_platform == 'linux'",
     # picamera2 (inherited from the system via --system-site-packages on the Pi) pulls
-    # in the compiled `simplejpeg` module. The apt copy is built against NumPy 1.x, but
-    # torch needs NumPy 2.x — incompatible ABIs in one interpreter. We install a
-    # NumPy-2.x simplejpeg wheel here (Linux only) so it shadows the system one and the
-    # whole camera+ML stack stays consistent on NumPy 2.x.
+    # in the compiled `simplejpeg` module, which is built against the SYSTEM NumPy. On
+    # older Raspberry Pi OS (Bookworm) that is NumPy 1.x, which clashes with the NumPy
+    # 2.x that torch needs — incompatible ABIs in one interpreter. We install a NumPy-2.x
+    # simplejpeg wheel here (Linux only) so it shadows the system one and the whole
+    # camera+ML stack stays on NumPy 2.x. (On current Raspberry Pi OS / Trixie the system
+    # is already NumPy 2.x, so this is harmless belt-and-suspenders.)
     "simplejpeg>=1.8 ; sys_platform == 'linux'",
 ]
 
@@ -60,11 +64,12 @@ dependencies = [
 #   The Pi camera is driven by `picamera2`, which depends on the COMPILED
 #   `libcamera`/`pykms` Python bindings. Those are not on PyPI — they ship via apt
 #   (`python3-picamera2`, pre-installed on Raspberry Pi OS) and are built for the
-#   system Python 3.11. We deliberately do NOT list picamera2 here. Instead, on the
-#   Pi the venv is created on the system 3.11 interpreter WITH --system-site-packages,
-#   so it transparently reuses the apt picamera2 + libcamera (no compiling, exact
-#   hardware match). On the Mac there is no Pi camera, so play.py falls back to the
-#   OpenCV webcam backend and none of this applies. See README.md for Pi setup.
+#   system Python (3.13 on current Raspberry Pi OS). We deliberately do NOT list
+#   picamera2 here. Instead, on the Pi the venv is created on that system interpreter
+#   WITH --system-site-packages, so it transparently reuses the apt picamera2 +
+#   libcamera (no compiling, exact hardware match). On the Mac there is no Pi camera,
+#   so play.py falls back to the OpenCV webcam backend and none of this applies.
+#   See README.md for Pi setup.
 
 # ---------------------------------------------------------------------------
 # CPU-only PyTorch on the Raspberry Pi (Linux / aarch64).
