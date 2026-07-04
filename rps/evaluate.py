@@ -19,7 +19,7 @@ Key metrics, in plain language
 
 Run it with:
     uv run evaluate.py                       # uses newest best.pt, test split
-    uv run evaluate.py --split valid         # evaluate on the validation split
+    uv run evaluate.py --split val           # evaluate on the validation split
     uv run evaluate.py --weights path/to.pt  # evaluate a specific model
 """
 
