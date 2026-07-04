@@ -56,16 +56,17 @@ the Pi** — don't run the Mac setup on the Pi or the camera won't import.
 
 This project uses [`uv`](https://docs.astral.sh/uv/) to manage **both** the
 Python version and the libraries. The system Python (3.14) is too new for
-PyTorch/Ultralytics, so on the Mac `uv` installs a managed **Python 3.11** (see
-`.python-version`) — the same *version* the Pi runs, so both resolve the same
-wheels and the code behaves identically.
+PyTorch/Ultralytics, so on the Mac `uv` installs a managed **Python 3.13** (see
+`.python-version`). The Pi uses its own *system* Python instead (3.13 on current
+Raspberry Pi OS, 3.11 on older Bookworm); the project supports **3.11–3.13** and every
+dependency ships wheels for all of them, so the code behaves the same everywhere.
 
 ```bash
 cd ~/workspace/tumo/rps
 uv sync          # creates the virtual env and installs everything
 ```
 
-`uv sync` reads `pyproject.toml`, downloads Python 3.11 if needed, and installs
+`uv sync` reads `pyproject.toml`, downloads Python 3.13 if needed, and installs
 Ultralytics (which brings PyTorch, OpenCV, NumPy, …) plus the NCNN export tools.
 
 You never need to "activate" the environment — just prefix commands with
@@ -157,14 +158,15 @@ uv run play.py --camera opencv
        pi@raspberrypi.local:~/workspace/tumo/rps/runs/detect/rps_train/weights/
    ```
 2. On the Pi, build the environment. picamera2 + libcamera ship pre-installed on
-   Raspberry Pi OS for the **system Python 3.11**, so we base the venv on that
-   interpreter and let it see the system packages (no compiling libcamera):
+   Raspberry Pi OS for the **system Python** (3.13 on current releases / Trixie, 3.11 on
+   older Bookworm), so we base the venv on that interpreter and let it see the system
+   packages (no compiling libcamera):
    ```bash
    sudo apt update
    sudo apt install -y python3-picamera2          # usually already present
    cd ~/workspace/tumo/rps
-   export UV_PYTHON_PREFERENCE=only-system         # use system 3.11, do not download one
-   uv venv --python /usr/bin/python3.11 --system-site-packages
+   export UV_PYTHON_PREFERENCE=only-system         # use the system Python, don't download one
+   uv venv --python /usr/bin/python3 --system-site-packages   # /usr/bin/python3 = whatever the Pi ships
    uv sync                                         # CPU torch, ultralytics, simplejpeg, …
    ```
    `--system-site-packages` lets the venv reuse the apt picamera2/libcamera, while
@@ -172,7 +174,7 @@ uv run play.py --camera opencv
    older apt one (so the camera and ML stacks agree on NumPy 2.x — otherwise picamera2
    fails to import next to torch).
 
-   > **Don't drop `--python /usr/bin/python3.11`.** It must be the *system*
+   > **Don't drop `--python /usr/bin/python3`.** It must be the *system*
    > interpreter — that is the only one that can see the apt camera packages.
    > `--system-site-packages` only exposes the *base* interpreter's packages, so if
    > you let `uv` download its own Python the camera libs stay invisible and
@@ -249,8 +251,8 @@ The header shows live FPS and the current verdict. Press Ctrl-C to stop.
 ```
 tumo/rps/
 ├── README.md            ← you are here
-├── pyproject.toml       ← uv project: Python 3.11 + dependencies
-├── .python-version      ← pins Python 3.11
+├── pyproject.toml       ← uv project: Python 3.11–3.13 + dependencies
+├── .python-version      ← pins Python 3.13
 ├── config.py            ← shared settings
 ├── game_logic.py        ← pure game rules (self-testing)
 ├── prepare_dataset.py   ← unpack + fix the dataset
