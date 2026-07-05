@@ -21,11 +21,23 @@
 
 1. Make sure your cable is the correct size: the camera cable usually sold with the v1.3 cameras works with Raspberry Pi models older than 5. The cable you have in your Raspberry Pi 5 kit should be the right one: you can verify that checking that one of the two ends of the cable is smaller than the other.
 
+![](images/pi_01.png)
+
 2. If there's already a cable connected to your camera and it's the wrong one, you first have to disconnect it. To do that, you need to unlock the latch that keeps the camera in place (see figure).
+
+![](images/pi_02.png)
 
 3. Connect the ribbon cable on one side (the larger one) to the camera, on the other side to the Raspberry Pi. The connectors on the Pi are two and the pictures below show you how to unlatch one and connect a cable to it.
 
+![](images/pi_03.png)
+![](images/pi_04.png)
+![](images/pi_05.png)
+![](images/pi_06.png)
+![](images/pi_07.png)
+
 4. Once everything is connected, you are ready to boot your Pi (perhaps the Raspberry Pi Imager has completed writing the SD card) and test the camera
+
+![](images/pi_08.png)
 
 
 ## First run with the Pi
@@ -89,6 +101,10 @@ sudo apt install -y python3-picamera2
 ### Test the camera
 
 Now that you have an up-to-date OS and VNC configured, you should be able to connect to it remotely via VNC too. The pictures below show how this looks like when you connect via [TigerVNC](https://tigervnc.org/), and open source VNC client that runs on linux and Mac via [brew](https://brew.sh/). Any VNC client should work though, so feel free to try the one that you are most comfortable with. Provide the `.local` address to connect to, and your credentials to log in. The Raspbian UI will greet you inside the VNC window! 
+
+![](images/vnc_01.png)
+![](images/vnc_02.png)
+
 
 Now, open a terminal (click on the corresponding icon on the menu bar at the top) and type:
 
