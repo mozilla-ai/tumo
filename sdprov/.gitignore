@@ -1,0 +1,4 @@
+# holds the real WiFi password and login password
+config.toml
+# holds the details of all the pis
+inventory.csv
