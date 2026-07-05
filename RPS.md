@@ -105,7 +105,6 @@ Now that you have an up-to-date OS and VNC configured, you should be able to con
 ![](images/vnc_01.png)
 ![](images/vnc_02.png)
 
-
 Now, open a terminal (click on the corresponding icon on the menu bar at the top) and type:
 
 ```
