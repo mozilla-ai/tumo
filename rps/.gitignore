@@ -1,6 +1,11 @@
 # Generated / downloaded — should not be committed.
+# (NOTE: gitignore has no inline comments — keep comments on their own lines.)
 .venv/
 __pycache__/
-dataset/          # recreate with: uv run prepare_dataset.py
-runs/             # training/eval/export outputs
-*.pt              # downloaded base model + trained weights
+.ipynb_checkpoints/
+# recreate with: uv run prepare_dataset.py
+dataset/
+# training/eval/export outputs
+runs/
+# downloaded base model + trained weights
+*.pt
