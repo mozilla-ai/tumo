@@ -1,0 +1,21 @@
+# sdprov configuration.
+# Copy to config.toml (git-ignored: it holds the WiFi password) and edit.
+
+[fleet]
+hostname_prefix = "pi"   # cards become pi01, pi02, ...
+count = 20               # highest index to allocate
+username = "pi"          # login user created/updated on every card
+password = "changeme"    # login password (also used by collect/verify over ssh)
+# Strongly recommended: a public key baked into every card so collect/verify
+# never prompt for a password. Leave empty to use password auth interactively.
+ssh_authorized_key = ""  # e.g. "ssh-ed25519 AAAA... you@laptop"
+
+[wifi]
+ssid = "LabWiFi"
+password = "labpassword"
+country = "AM"           # ISO 3166-1 alpha-2 regulatory domain (AM = Armenia)
+hidden = false
+
+[locale]
+timezone = "Asia/Yerevan"
+keymap = "us"
