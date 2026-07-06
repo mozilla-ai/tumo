@@ -1,3 +1,11 @@
+# This example tests different models against the "how many Rs are in strawberry" question
+# Albeit simple, this is a useful test to understand a bit more about a model, e.g.:
+# - whether it has been specifically trained for that example
+# - whether it can properly do very simple tool calling
+# - whether it already uses a tool under the hood
+# Try playing with these models: "gpt-4o", "gpt-4", "gpt-5", "gpt-5.5"
+# Try with local models too (just put whatever id, it is ignored as long as the URL is correct)
+
 import sys
 import os
 from any_agent import AgentConfig, AnyAgent

@@ -1,3 +1,8 @@
+# This example can be used to verify what happens to different models when
+# they are asked information they have seen in training or not.
+# Try with differenet names (someone not known, someone whose info is on 
+# Wikipedia but not really famous, some historical character) and see what
+# happens with and without tools.
 import sys
 import os
 from any_agent import AgentConfig, AnyAgent
