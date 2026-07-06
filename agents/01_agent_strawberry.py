@@ -11,8 +11,11 @@ agent = AnyAgent.create(
     AgentConfig(
         model_id="openai:gpt-5",
         api_key=os.environ.get("OPENAI_API_KEY"),
-        # instructions="""You must use the available tools to find an answer.""",
-        # tools=[count_character_occurrences],
+        # model_id="llamafile:Qwen3.5-0.8B",
+        # api_key="whatever",
+        # api_base="http://localhost:8080",
+        instructions="""You must use the available tools to find an answer.""",
+        tools=[count_character_occurrences],
         callbacks=[]
     ),
 )
