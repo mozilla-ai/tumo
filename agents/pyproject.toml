@@ -5,6 +5,7 @@ requires-python = ">=3.13"
 dependencies = [
     "any-agent[all]",
     "any-llm-sdk[all]",
+    "libzim",
     "mcpd",
     "markdownify",
     "openai",

@@ -768,7 +768,7 @@ name = "ffmpeg-python"
 version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "future" },
+    { name = "future", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/dd/5e/d5f9105d59c1325759d838af4e973695081fbbc97182baf73afc78dec266/ffmpeg-python-0.2.0.tar.gz", hash = "sha256:65225db34627c578ef0e11c8b1eb528bb35e024752f6f10b78c011f6f64c4127", size = 21543, upload-time = "2019-07-06T00:19:08.989Z" }
 wheels = [
@@ -1376,9 +1376,9 @@ name = "ibm-cos-sdk"
 version = "2.14.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ibm-cos-sdk-core" },
-    { name = "ibm-cos-sdk-s3transfer" },
-    { name = "jmespath" },
+    { name = "ibm-cos-sdk-core", marker = "python_full_version < '3.14'" },
+    { name = "ibm-cos-sdk-s3transfer", marker = "python_full_version < '3.14'" },
+    { name = "jmespath", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/98/b8/b99f17ece72d4bccd7e75539b9a294d0f73ace5c6c475d8f2631afd6f65b/ibm_cos_sdk-2.14.3.tar.gz", hash = "sha256:643b6f2aa1683adad7f432df23407d11ae5adb9d9ad01214115bee77dc64364a", size = 58831, upload-time = "2025-08-01T06:35:51.722Z" }
 
@@ -1387,10 +1387,10 @@ name = "ibm-cos-sdk-core"
 version = "2.14.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "jmespath" },
-    { name = "python-dateutil" },
-    { name = "requests" },
-    { name = "urllib3" },
+    { name = "jmespath", marker = "python_full_version < '3.14'" },
+    { name = "python-dateutil", marker = "python_full_version < '3.14'" },
+    { name = "requests", marker = "python_full_version < '3.14'" },
+    { name = "urllib3", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7e/45/80c23aa1e13175a9deefe43cbf8e853a3d3bfc8dfa8b6d6fe83e5785fe21/ibm_cos_sdk_core-2.14.3.tar.gz", hash = "sha256:85dee7790c92e8db69bf39dae4c02cac211e3c1d81bb86e64fa2d1e929674623", size = 1103637, upload-time = "2025-08-01T06:35:41.645Z" }
 
@@ -1399,7 +1399,7 @@ name = "ibm-cos-sdk-s3transfer"
 version = "2.14.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ibm-cos-sdk-core" },
+    { name = "ibm-cos-sdk-core", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f3/ff/c9baf0997266d398ae08347951a2970e5e96ed6232ed0252f649f2b9a7eb/ibm_cos_sdk_s3transfer-2.14.3.tar.gz", hash = "sha256:2251ebfc4a46144401e431f4a5d9f04c262a0d6f95c88a8e71071da056e55f72", size = 139594, upload-time = "2025-08-01T06:35:46.403Z" }
 
@@ -1408,16 +1408,16 @@ name = "ibm-watsonx-ai"
 version = "1.5.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cachetools" },
-    { name = "certifi" },
-    { name = "httpx" },
-    { name = "ibm-cos-sdk" },
-    { name = "lomond" },
-    { name = "packaging" },
+    { name = "cachetools", marker = "python_full_version < '3.14'" },
+    { name = "certifi", marker = "python_full_version < '3.14'" },
+    { name = "httpx", marker = "python_full_version < '3.14'" },
+    { name = "ibm-cos-sdk", marker = "python_full_version < '3.14'" },
+    { name = "lomond", marker = "python_full_version < '3.14'" },
+    { name = "packaging", marker = "python_full_version < '3.14'" },
     { name = "pandas", marker = "python_full_version < '3.14'" },
-    { name = "requests" },
-    { name = "tabulate" },
-    { name = "urllib3" },
+    { name = "requests", marker = "python_full_version < '3.14'" },
+    { name = "tabulate", marker = "python_full_version < '3.14'" },
+    { name = "urllib3", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/29/a3/c756b534696ab2f3f29882fdb7ca7198b7a5c94e10c0a3a327853d6d6b79/ibm_watsonx_ai-1.5.14.tar.gz", hash = "sha256:a756488bd57e87c0fc51be42dcba871143cfe0ac1e805c497c5047e1e4f13e9d", size = 735804, upload-time = "2026-06-22T12:32:43.85Z" }
 wheels = [
@@ -1677,7 +1677,7 @@ name = "langchain-text-splitters"
 version = "1.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "langchain-core" },
+    { name = "langchain-core", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/26/9f/6c545900fefb7b00ddfa3f16b80d61338a0ec68c31c5451eeeab99082760/langchain_text_splitters-1.1.2.tar.gz", hash = "sha256:782a723db0a4746ac91e251c7c1d57fd23636e4f38ed733074e28d7a86f41627", size = 293580, upload-time = "2026-04-16T14:20:39.162Z" }
 wheels = [
@@ -1766,6 +1766,35 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d4/8b/a56b97a3b8a94f850fe2ec42351d4c508cc6bd7ca96644906c311e32ec5b/langsmith-0.9.7.tar.gz", hash = "sha256:40f8a66a466a7abd991a9df1b50de0a9d30c48ee0d3da46ce00516b68e41c9d7", size = 4711142, upload-time = "2026-07-02T20:11:09.619Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/95/0abb8647123c9ebbb31162bcdba3183f5f3d3bb2f752ef3d777ab715e88c/langsmith-0.9.7-py3-none-any.whl", hash = "sha256:a5ff9179b77eb0c3a0129294d30924eab13e51e2720f374372dbbc014c892911", size = 671052, upload-time = "2026-07-02T20:11:07.702Z" },
+]
+
+[[package]]
+name = "libzim"
+version = "3.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/3c/94a9860bfefcac10dcbc40c3ba3907b23ec200b51bd2d65138fed8c954be/libzim-3.10.0.tar.gz", hash = "sha256:c8dce5554cbf107b6482db440f9f0889201363c477a68b7c336ffa63bdcdd24a", size = 58462, upload-time = "2026-05-19T12:39:43.915Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c9/b3/bc87c336c799bf3634327a5f6ff4304bf65cb15d355b55a1936f413d9358/libzim-3.10.0-cp313-cp313-macosx_13_0_arm64.whl", hash = "sha256:72674311ca91315bc9f8081afb78c4f2d77629fe235e1d1553e73131c50fff28", size = 3619063, upload-time = "2026-05-19T12:39:05.368Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/64/bb889430be81620cec7d701e312a3d5d80c9bd3d34a412c63875d7d3e81d/libzim-3.10.0-cp313-cp313-macosx_13_0_x86_64.whl", hash = "sha256:8e293eef4c6130e7bac7dda406f163b8b142fab5f6de9ce7f63c4ee83678af33", size = 3842497, upload-time = "2026-05-19T12:39:06.597Z" },
+    { url = "https://files.pythonhosted.org/packages/63/80/1645cedc6ec4c2109776a9d4ec9f63ab01be488bdc10adefcce5ce401b77/libzim-3.10.0-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f7f802377db2e66df97a105f15a312b52b898da310d9994b7e16488037b0e5b3", size = 8188038, upload-time = "2026-05-19T12:39:08.434Z" },
+    { url = "https://files.pythonhosted.org/packages/af/c0/cc2cd80a9111b050366b84772aff6afe902006dcb075a22f5792f86417a5/libzim-3.10.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4716b08e0c0aa56f20d50aab09f10ba9e3b4e49265c29cecfb84ddc650f4b814", size = 8385231, upload-time = "2026-05-19T12:39:10.635Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/70/ddff5a92228aee638e64d6595067ccd52cd0953c24943dae6988ceac9860/libzim-3.10.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:eba49b0572c2b6b72b42ab7fd76982949d4fc58e7bfe197a64fe861b7750472a", size = 9530358, upload-time = "2026-05-19T12:39:12.275Z" },
+    { url = "https://files.pythonhosted.org/packages/44/92/a08c9a2cb64e8cd00cb521bf93098d442c30d6f44e3667b02fcaf326ad3d/libzim-3.10.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:b6ad59bc0242fe6a9bb40432988f913ceaca49aeb9a62d560a1eacc277454f01", size = 9749063, upload-time = "2026-05-19T12:39:14.387Z" },
+    { url = "https://files.pythonhosted.org/packages/24/17/e1015e70587dd443be03ad5d4cc508de4abd2c38f96d2333e4e8c7341741/libzim-3.10.0-cp313-cp313-win_amd64.whl", hash = "sha256:96ac0e0a6d65db2d94b1fcd3269aeca031c29a6eae8047a268484f59037101c5", size = 15967029, upload-time = "2026-05-19T12:39:16.374Z" },
+    { url = "https://files.pythonhosted.org/packages/22/d6/4bd53ceb11a9f246012fafb59a37c188371907dc0fe5a88f0ae029f620b0/libzim-3.10.0-cp314-cp314-macosx_13_0_arm64.whl", hash = "sha256:5ead4a4a43dafd3f1c8983b657fe83bd1d1a1975a7f3497cf96a23677d5280ce", size = 3627018, upload-time = "2026-05-19T12:39:18.383Z" },
+    { url = "https://files.pythonhosted.org/packages/78/0d/a55940fc108d43c5afe5ad27d1288db7c694aa36282481616a28f1b49e60/libzim-3.10.0-cp314-cp314-macosx_13_0_x86_64.whl", hash = "sha256:c96b623ac2d5dac5f5a80d67ca25afaaf7c43e440a57c3c2a6d539ff2cababf9", size = 3849706, upload-time = "2026-05-19T12:39:19.688Z" },
+    { url = "https://files.pythonhosted.org/packages/40/7a/6baf1502efc062faeb67f1488271f6dd452e9c142964477a45790c15ab94/libzim-3.10.0-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:d201daf64d87171f4efe40198f9aae069656162dd5eb7b379c1d3978c16d755b", size = 8192183, upload-time = "2026-05-19T12:39:21.211Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/1c/3519d3fc80a4d25abb7ecf79035a801c50f823be00cb4e9e5be50efd5708/libzim-3.10.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9ed10c36d6d18c18cee0d417b187424007cc0fe002469b87ef05072192c4d1f3", size = 8383904, upload-time = "2026-05-19T12:39:23.056Z" },
+    { url = "https://files.pythonhosted.org/packages/44/f8/b6ec3e6937d6110db687768ef3407f135c653d982227ad618f154157c0e1/libzim-3.10.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:a851c6dd69bf1b65270e7c8bbffcdf61093bd3dc1d411a68aea07a7ae78e9ff7", size = 9535987, upload-time = "2026-05-19T12:39:24.544Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/dd/88987f95f0fa8db05400446d9595f0f4b724c417a42961a6351c69420f50/libzim-3.10.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:623b620f7469c214ac2597251df46604743ea2d378635ba5a10ccabcc6fdc0b6", size = 9748646, upload-time = "2026-05-19T12:39:26.449Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/f0/7ac91755012b050c6d358a51f434d1337a42778659c98669ea82379c6588/libzim-3.10.0-cp314-cp314-win_amd64.whl", hash = "sha256:f126364501f257b1dc2d93f695e39feaa40e376e289b5c597b57c9d8e8acf837", size = 16640743, upload-time = "2026-05-19T12:39:28.9Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/c4/f6afc9c6926e525991a20a05d0446dddfbd247774e6780bdc61e2521e3f0/libzim-3.10.0-cp314-cp314t-macosx_13_0_arm64.whl", hash = "sha256:c60e5bf7a76236a17b5e84c439a836ad918a266db24b5d84d27aeb1a2b17d540", size = 3638316, upload-time = "2026-05-19T12:39:31.094Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/60/e9f147cd2fdd8783f55f89daca15c88365494b50880b7aabb6ebd66e4006/libzim-3.10.0-cp314-cp314t-macosx_13_0_x86_64.whl", hash = "sha256:055eef61a5474614dd416fd0a4143c67cce197eb80b5f492ff0e4556dbc8fd11", size = 3861947, upload-time = "2026-05-19T12:39:32.909Z" },
+    { url = "https://files.pythonhosted.org/packages/e9/c5/adc5c950af9ef84713b0056b5d7a97ff54ebd9cf1407b1f83a10193e4405/libzim-3.10.0-cp314-cp314t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:089f810f677790908fd5d668ef3d13f276fb2eec54c6e0006ae56f9c608c1d91", size = 8197185, upload-time = "2026-05-19T12:39:34.494Z" },
+    { url = "https://files.pythonhosted.org/packages/38/02/1312941106745a8930086e7b87d11eb2dfbaf10d37064ee55c039b545549/libzim-3.10.0-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:619ea159de6523a596afc3abfc6cd8cde6535c1f722ccaca2fbc991b36c50006", size = 8371467, upload-time = "2026-05-19T12:39:35.986Z" },
+    { url = "https://files.pythonhosted.org/packages/27/dc/bb1241e52f4ca4f934625dafc2f37fb6a9c900bc7006b09f9721217d80e2/libzim-3.10.0-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:299eb291f97f44f5d512f190a0c2567efac211851a93d7981fc2a7709726ee7c", size = 9533481, upload-time = "2026-05-19T12:39:37.552Z" },
+    { url = "https://files.pythonhosted.org/packages/22/ae/4e68fef9c9cd82f912154f90abcaddd23a48183356c9bb690b3243412514/libzim-3.10.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:f2104fbdce55f751b9634e56b5943e73608288abf76247a25b81357f413c35d7", size = 9730996, upload-time = "2026-05-19T12:39:39.873Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/c8/e56120cb73c0fed8c43bcd86fa6da95eba651fd215ca1bc9c7576030e8fd/libzim-3.10.0-cp314-cp314t-win_amd64.whl", hash = "sha256:b33329b0980a86dd6c72c82a3b8a782c06135fa3ab6146bcbc41389713bfc73b", size = 16670125, upload-time = "2026-05-19T12:39:42.172Z" },
 ]
 
 [[package]]
@@ -1910,7 +1939,7 @@ name = "lomond"
 version = "0.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "six" },
+    { name = "six", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c0/9e/ef7813c910d4a893f2bc763ce9246269f55cc68db21dc1327e376d6a2d02/lomond-0.3.3.tar.gz", hash = "sha256:427936596b144b4ec387ead99aac1560b77c8a78107d3d49415d3abbe79acbd3", size = 28789, upload-time = "2018-09-21T15:17:43.297Z" }
 wheels = [
@@ -3576,6 +3605,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "any-agent", extra = ["all"] },
     { name = "any-llm-sdk", extra = ["all"] },
+    { name = "libzim" },
     { name = "markdownify" },
     { name = "mcpd" },
     { name = "openai" },
@@ -3585,6 +3615,7 @@ dependencies = [
 requires-dist = [
     { name = "any-agent", extras = ["all"] },
     { name = "any-llm-sdk", extras = ["all"] },
+    { name = "libzim" },
     { name = "markdownify" },
     { name = "mcpd" },
     { name = "openai" },
@@ -3780,16 +3811,16 @@ name = "voyageai"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "aiohttp" },
-    { name = "aiolimiter" },
-    { name = "ffmpeg-python" },
-    { name = "langchain-text-splitters" },
-    { name = "numpy", marker = "python_full_version < '3.15'" },
-    { name = "pillow" },
-    { name = "pydantic" },
-    { name = "requests" },
-    { name = "tenacity" },
-    { name = "tokenizers" },
+    { name = "aiohttp", marker = "python_full_version < '3.14'" },
+    { name = "aiolimiter", marker = "python_full_version < '3.14'" },
+    { name = "ffmpeg-python", marker = "python_full_version < '3.14'" },
+    { name = "langchain-text-splitters", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "pillow", marker = "python_full_version < '3.14'" },
+    { name = "pydantic", marker = "python_full_version < '3.14'" },
+    { name = "requests", marker = "python_full_version < '3.14'" },
+    { name = "tenacity", marker = "python_full_version < '3.14'" },
+    { name = "tokenizers", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b1/b0/c8a15933564cb4da629ab8b46ba742b4395c116bf8a5ae7b0cbef176e8f9/voyageai-0.4.1.tar.gz", hash = "sha256:1e59d9fb22f79abdeef6946000fb4789ac10d9453b9997574f8408e619999b4c", size = 27526, upload-time = "2026-06-18T21:06:49.868Z" }
 wheels = [
