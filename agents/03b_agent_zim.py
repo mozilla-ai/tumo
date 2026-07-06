@@ -62,3 +62,7 @@ agent_trace = agent.run(prompt)
 
 # Also try:
 # "When are two triangles congruent? Use the tools and provide references for your answer"
+
+# ZIM files used:
+# https://mirrors.dotsrc.org/kiwix/zim/wikipedia/wikipedia_en_all_mini_2026-06.zim (11.7GB)
+# https://mirrors.dotsrc.org/kiwix/zim/libretexts/libretexts.org_en_math_2026-01.zim (792MB)
