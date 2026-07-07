@@ -17,13 +17,13 @@ def count_character_occurrences(word: str, char: str) -> int:
 agent = AnyAgent.create(
     "openai",
     AgentConfig(
-        model_id="openai:gpt-5",
+        model_id="openai:gpt-4o",
         api_key=os.environ.get("OPENAI_API_KEY"),
         # model_id="llamafile:Qwen3.5-0.8B",
         # api_key="whatever",
         # api_base="http://localhost:8080",
         instructions="""You must use the available tools to find an answer.""",
-        tools=[count_character_occurrences],
+        # tools=[count_character_occurrences],
         callbacks=[]
     ),
 )
