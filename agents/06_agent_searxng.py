@@ -126,6 +126,8 @@ agent = AnyAgent.create(
 )
 
 prompt = sys.argv[1] if len(sys.argv) > 1 else """
-Who are the speakers at the mozilla.ai + TUMO event in Yerevan?
+Who are the speakers at the TUMO + mozilla.ai event in Yerevan?
 """
 agent_trace = agent.run(prompt)
+
+# also try: What are 5 tv shows that are trending in 2026? Please provide the name of the show, the exact release date, the genre, and a brief description of the show.
