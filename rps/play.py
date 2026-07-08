@@ -82,6 +82,16 @@ class PiCamera:
                 "(Or test on a laptop with `--camera opencv`.)"
             ) from exc
 
+        # If no camera is physically detected, Picamera2() fails deep inside with
+        # a cryptic "IndexError: list index out of range". Check first so we can
+        # tell the user plainly what is wrong.
+        if not Picamera2.global_camera_info():
+            raise RuntimeError(
+                "Camera not found. Please make sure the camera module is connected "
+                "properly (check the ribbon cable at both ends) and try again.\n"
+                "(Or test on a laptop with `--camera opencv`.)"
+            )
+
         self._picam = Picamera2()
         # Configure a still-image capture at our model's input size.
         cfg = self._picam.create_preview_configuration(
@@ -241,7 +251,11 @@ def main() -> None:
     model = YOLO(str(weights))
 
     print(f"Opening camera: {args.camera}")
-    camera = open_camera(args.camera)
+    try:
+        camera = open_camera(args.camera)
+    except RuntimeError as exc:
+        # e.g. camera not connected — show the friendly message, not a traceback.
+        raise SystemExit(str(exc))
 
     # Running tally of results from the player's point of view.
     score = {"win": 0, "lose": 0, "tie": 0}

@@ -289,7 +289,11 @@ def main() -> None:
     model = YOLO(str(weights))
 
     print(f"Opening camera: {args.camera}")
-    camera = open_camera(args.camera)
+    try:
+        camera = open_camera(args.camera)
+    except RuntimeError as exc:
+        # e.g. camera not connected — show the friendly message, not a traceback.
+        raise SystemExit(str(exc))
 
     hub = FrameHub()
     detector = Detector(model, camera, hub, args.conf, args.play_conf,
