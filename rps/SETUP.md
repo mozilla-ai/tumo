@@ -1,6 +1,4 @@
-# Rock, Paper, Scissors: a smol AI application
-
-
+# Setting up 🪨 📄 ✂️
 
 ## Configure and install the Operating System
 
@@ -139,10 +137,11 @@ uv venv --python /usr/bin/python3 --system-site-packages   # /usr/bin/python3 = 
 uv sync
 ```
 
-## Run the python code
+## Test the python code
 
 ```
 uv run python detect_live.py
 uv run python play.py
 ```
 
+For more documentation about the code, check the [YOLO.md](YOLO.md) document.
