@@ -72,6 +72,11 @@ Ultralytics (which brings PyTorch, OpenCV, NumPy, …) plus the NCNN export tool
 You never need to "activate" the environment — just prefix commands with
 `uv run`, e.g. `uv run train.py`.
 
+> **Workshop notebook:** `workshop.ipynb` walks through steps 2–4 interactively
+> (browse the dataset, run a short training, compare models, play a round
+> against a photo). Launch it with
+> `uv run --with jupyter jupyter lab workshop.ipynb`.
+
 ---
 
 ## 2. Prepare the dataset
@@ -261,6 +266,7 @@ tumo/rps/
 ├── export.py            ← convert to NCNN for the Pi
 ├── play.py              ← the game loop
 ├── detect_live.py       ← live detection viewer (web UI) for debugging
+├── workshop.ipynb       ← interactive workshop tour (dataset → train → eval → inference)
 ├── dataset/             ← created by prepare_dataset.py
 └── runs/                ← created by train/evaluate/export (weights, plots)
 ```
