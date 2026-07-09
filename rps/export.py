@@ -4,8 +4,10 @@ export.py
 
 Step 4 of the workflow: convert the trained model into a format that runs fast
 on the Raspberry Pi 5.
+Աշխատանքի 4-րդ քայլը՝ փոխակերպել մարզված մոդելը այնպիսի ձևաչափի, որ արագ
+աշխատի Raspberry Pi 5-ի վրա:
 
-Why convert at all?
+Why convert at all? / Ինչո՞ւ ընդհանրապես փոխակերպել:
 -------------------
 Training produces a PyTorch model (``best.pt``). PyTorch is great on a laptop
 with a GPU, but on a small ARM board like the Pi it is relatively slow. NCNN is
@@ -13,12 +15,24 @@ a lightweight neural-network engine built for exactly these devices, and
 Ultralytics recommends it as the fastest option on a Raspberry Pi 5 — typically
 a couple of times faster than plain PyTorch.
 
+Մարզումն արտադրում է PyTorch մոդel (``best.pt``): PyTorch-ը հիանալի է GPU-ով
+նոութբուքի վրա, բայց Pi-ի նման փոքր ARM տախտակի վրա այն համեմատաբար դանդաղ է:
+NCNN-ը թեթև նեյրոնային ցանցի շարժիչ է՝ ստեղծված հատկապես այս սարքերի համար, և
+Ultralytics-ը խորհուրդ է տալիս այն որպես ամենաարագ տարբերակը Raspberry Pi 5-ի
+վրա՝ սովորաբար մի քանի անգամ ավելի արագ, քան սովորական PyTorch-ը:
+
 The conversion produces a *folder* (``best_ncnn_model/``) containing the model
 in NCNN's format. You copy that whole folder to the Pi and point ``play.py`` at it.
 
-Run it with:
+Փոխակերպումն արտադրում է *պանակ* (``best_ncnn_model/``), որը պարունակում է
+մոդելը NCNN-ի ձևաչափով: Դուք ամբողջ պանակը պատճենում եք Pi-ի վրա և ``play.py``-ն
+ուղղորդում դեպի այն:
+
+Run it with / Աշխատեցրեք այսպես.
     uv run export.py                       # converts the newest best.pt
+                                           # փոխակերպում է նորագույն best.pt-ն
     uv run export.py --weights path/to.pt  # convert a specific model
+                                           # փոխակերպել կոնկրետ մոդel
 """
 
 from __future__ import annotations

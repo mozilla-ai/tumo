@@ -3,35 +3,57 @@ detect_live.py
 ==============
 
 A live debugging viewer for the Rock-Paper-Scissors model.
+Կենդանի (live) վրիպազերծման դիտիչ «Քար-Թուղթ-Մկրատ» մոդելի համար։
 
 It opens the camera, runs the model on every frame, draws the detections, and
 serves the annotated video as a tiny web page you can open in any browser — on
 the Pi itself or, more usefully, from your Mac while the Pi runs headless.
+Այն բացում է տեսախցիկը, մոդելն աշխատեցնում է ամեն կադրի վրա, նկարում է
+հայտնաբերումները և ծառայեցնում է նշումներով տեսանյութը որպես փոքրիկ վեբ-էջ,
+որը կարող ես բացել ցանկացած բրաուզերում՝ թե՛ հենց Pi-ի վրա, թե՛ (առավել
+հարմար) քո Mac-ից, մինչ Pi-ն աշխատում է առանց էկրանի (headless)։
 
 Why this exists
+Ինչու է սա գոյություն ունի
 ---------------
 `play.py` only announces the final move, so when the model "fails" you cannot
 see why. This viewer shows EVERY detection (down to a low threshold) with its
 confidence, and colours each box by whether it would actually count in the game:
+`play.py`-ն հայտարարում է միայն վերջնական քայլը, ուստի երբ մոդելը «ձախողվում է»,
+դու չես կարող տեսնել՝ ինչու։ Այս դիտիչը ցույց է տալիս ՅՈՒՐԱՔԱՆՉՅՈՒՐ հայտնաբերում
+(մինչև ցածր շեմ) իր վստահության (confidence) հետ միասին, և ամեն շրջանակ (box)
+գունավորում է ըստ այն բանի՝ արդյոք այն իրականում կհաշվվեր խաղում:
 
     green  = confidence >= the game threshold  -> this WOULD be played
+    green (կանաչ) = վստահությունը >= խաղի շեմից -> սա ԿԽԱՂԱՐԿՎԵՐ
     orange = below the game threshold          -> the game ignores it ("error")
+    orange (նարնջագույն) = խաղի շեմից ցածր -> խաղն անտեսում է այն («error»)
 
 So if the game keeps saying "error", point the camera at your hand here: you will
 often see something like "Scissors 0.34" in orange — proof the model *is* seeing
 the hand, just not confidently enough (usually lighting, distance, or angle).
+Այսպիսով, եթե խաղը շարունակ ասում է «error», ուղղիր տեսախցիկն այստեղ դեպի ձեռքդ.
+հաճախ կտեսնես նարնջագույնով «Scissors 0.34»-ի նման մի բան՝ ապացույց, որ մոդելը
+*տեսնում է* ձեռքը, պարզապես բավարար վստահ չէ (սովորաբար՝ լուսավորության,
+հեռավորության կամ անկյան պատճառով)։
 
 Run it
+Աշխատեցնել այն
 ------
     # On the Pi (headless is fine — open the URL from your Mac afterwards):
+    # Pi-ի վրա (headless-ը նորմալ է — հետո բացիր URL-ը քո Mac-ից):
     uv run detect_live.py --weights ~/workspace/tumo/rps/best_ncnn_model
     #   then browse to   http://raspberrypi.local:8000
+    #   ապա անցիր       http://raspberrypi.local:8000 հասցեին
 
     # On the Mac, using the built-in webcam:
+    # Mac-ի վրա՝ օգտագործելով ներկառուցված վեբ-տեսախցիկը:
     uv run detect_live.py --camera opencv
     #   then browse to   http://localhost:8000
+    #   ապա անցիր       http://localhost:8000 հասցեին
 
 Press Ctrl-C in the terminal to stop the server.
+Սերվերը կանգնեցնելու համար տերմինալում սեղմիր Ctrl-C։
 """
 
 from __future__ import annotations
@@ -46,24 +68,33 @@ from ultralytics import YOLO
 
 import config
 from play import open_camera  # reuse the exact camera backends play.py uses
+                              # վերաօգտագործում ենք հենց այն տեսախցիկի backend-երը, որ play.py-ն է օգտագործում
 
 
 # ===========================================================================
 # Sharing the latest frame between the inference thread and the web clients
+# Վերջին կադրի փոխանակումը inference-ի թելի (thread) և վեբ-հաճախորդների միջև
 # ===========================================================================
 class FrameHub:
     """A small thread-safe mailbox holding the most recent JPEG frame.
+    Փոքրիկ, թելերի-նկատմամբ-անվտանգ (thread-safe) փոստարկղ, որը պահում է
+    ամենավերջին JPEG կադրը։
 
     The inference loop calls ``publish()``; each connected browser waits in
     ``next_frame()`` and is woken the moment a fresh frame is ready. A slow
     browser simply skips ahead to the latest frame — exactly what we want for a
     live preview (we never queue up stale frames).
+    Inference-ի ցիկլը կանչում է ``publish()``-ը. ամեն միացած բրաուզեր սպասում է
+    ``next_frame()``-ում և արթնանում այն պահին, երբ նոր կադր պատրաստ է։ Դանդաղ
+    բրաուզերը պարզապես ցատկում է դեպի ամենավերջին կադրը՝ հենց այն, ինչ մեզ պետք է
+    կենդանի դիտման համար (մենք երբեք հին կադրեր հերթ չենք դնում)։
     """
 
     def __init__(self):
         self._cond = threading.Condition()
         self._jpeg: bytes | None = None
         self._seq = 0  # increments on every new frame
+                       # ավելանում է ամեն նոր կադրի հետ
 
     def publish(self, jpeg: bytes) -> None:
         with self._cond:
@@ -72,7 +103,9 @@ class FrameHub:
             self._cond.notify_all()
 
     def next_frame(self, last_seq: int):
-        """Block until a frame newer than ``last_seq`` exists, then return it."""
+        """Block until a frame newer than ``last_seq`` exists, then return it.
+        Սպասիր (block), մինչև ``last_seq``-ից նոր կադր գոյություն ունենա, ապա վերադարձրու այն։
+        """
         with self._cond:
             while self._seq == last_seq or self._jpeg is None:
                 self._cond.wait()
@@ -81,8 +114,10 @@ class FrameHub:
 
 # ===========================================================================
 # Drawing the detections onto a frame
+# Հայտնաբերումների նկարումը կադրի վրա
 # ===========================================================================
 # Colours are BGR (OpenCV's order), not RGB.
+# Գույները BGR ձևաչափով են (OpenCV-ի հերթականությունը), ոչ թե RGB։
 GREEN = (0, 200, 0)
 ORANGE = (0, 165, 255)
 GREY = (60, 60, 60)
@@ -90,11 +125,14 @@ WHITE = (255, 255, 255)
 
 
 def draw_overlay(frame, result, play_conf, fps, infer_ms):
-    """Return a copy of the BGR ``frame`` with boxes and a status header drawn."""
+    """Return a copy of the BGR ``frame`` with boxes and a status header drawn.
+    Վերադարձրու BGR ``frame``-ի պատճեն՝ նկարված շրջանակներով և կարգավիճակի վերնագրով։
+    """
     img = frame.copy()
     boxes = result.boxes
 
     detections = []  # collect (name, conf) for the header summary
+                     # հավաքում ենք (name, conf) զույգերը վերնագրի ամփոփման համար
     if boxes is not None and len(boxes) > 0:
         for i in range(len(boxes)):
             conf = float(boxes.conf[i])
@@ -103,6 +141,7 @@ def draw_overlay(frame, result, play_conf, fps, infer_ms):
 
             x1, y1, x2, y2 = (int(v) for v in boxes.xyxy[i].tolist())
             # Green if the game would accept it, orange if it is too unsure.
+            # Կանաչ՝ եթե խաղը կընդուներ այն, նարնջագույն՝ եթե շատ անվստահ է։
             color = GREEN if conf >= play_conf else ORANGE
             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
@@ -113,6 +152,7 @@ def draw_overlay(frame, result, play_conf, fps, infer_ms):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, WHITE, 2)
 
     # ---- status header: what the *game* would decide from this exact frame ----
+    # ---- կարգավիճակի վերնագիր. ինչ կորոշեր *խաղը* հենց այս կադրից ----
     playable = [d for d in detections if d[1] >= play_conf]
     if playable:
         name, conf = max(playable, key=lambda d: d[1])
@@ -139,9 +179,12 @@ def draw_overlay(frame, result, play_conf, fps, infer_ms):
 
 # ===========================================================================
 # The inference loop (runs in its own background thread)
+# Inference-ի ցիկլը (աշխատում է իր առանձին ֆոնային թելում)
 # ===========================================================================
 class Detector(threading.Thread):
-    """Continuously capture -> detect -> annotate -> publish a JPEG."""
+    """Continuously capture -> detect -> annotate -> publish a JPEG.
+    Անընդհատ՝ նկարահանել -> հայտնաբերել -> նշումներ ավելացնել -> հրապարակել JPEG։
+    """
 
     def __init__(self, model, camera, hub, display_conf, play_conf, imgsz, device):
         super().__init__(daemon=True)
@@ -159,7 +202,9 @@ class Detector(threading.Thread):
         while self.running:
             try:
                 frame = self.camera.read()  # BGR numpy image
+                                            # BGR numpy պատկեր
             except Exception as exc:  # camera hiccup — report once and stop
+                                      # տեսախցիկի խափանում — մեկ անգամ հաղորդել և կանգնել
                 print(f"\nCamera error: {exc}")
                 self.running = False
                 break
@@ -177,6 +222,7 @@ class Detector(threading.Thread):
                 self.hub.publish(buf.tobytes())
 
             # Smooth the FPS read-out so it does not jump around frame to frame.
+            # Հարթեցնում ենք FPS-ի ցուցումը, որ այն կադրից կադր չցատկի։
             dt = time.time() - t0
             inst = 1.0 / dt if dt > 0 else 0.0
             fps = inst if fps == 0 else 0.9 * fps + 0.1 * inst
@@ -187,6 +233,7 @@ class Detector(threading.Thread):
 
 # ===========================================================================
 # The web server
+# Վեբ-սերվերը
 # ===========================================================================
 INDEX_HTML = b"""<!doctype html>
 <html><head><meta charset="utf-8"><title>RPS live detection</title>
@@ -221,6 +268,8 @@ class StreamHandler(BaseHTTPRequestHandler):
         elif self.path == "/stream.mjpg":
             # An MJPEG stream is just a never-ending multipart response: one JPEG
             # part per frame. Every browser understands this in a plain <img>.
+            # MJPEG հոսքը (stream) ընդամենը երբեք չավարտվող multipart պատասխան է՝
+            # մեկ JPEG մաս ամեն կադրի համար։ Ամեն բրաուզեր հասկանում է սա սովորական <img>-ում։
             self.send_response(200)
             self.send_header("Age", "0")
             self.send_header("Cache-Control", "no-cache, private")
@@ -241,16 +290,19 @@ class StreamHandler(BaseHTTPRequestHandler):
                     self.wfile.write(b"\r\n")
             except (BrokenPipeError, ConnectionResetError):
                 pass  # the browser tab was closed — perfectly normal
+                      # բրաուզերի ներդիրը փակվել է — միանգամայն նորմալ է
 
         else:
             self.send_error(404)
 
     def log_message(self, *args):
         pass  # silence per-request logging; we print our own status line
+              # անջատում ենք ամեն հարցման գրանցումը. մենք տպում ենք մեր սեփական կարգավիճակի տողը
 
 
 # ===========================================================================
 # Command-line entry point
+# Հրամանի-տողի (command-line) մուտքի կետը
 # ===========================================================================
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Live web viewer for the RPS YOLO model.")
