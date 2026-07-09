@@ -91,6 +91,9 @@ def load_config(path: Path) -> dict:
     tz = cfg.get("locale", {}).get("timezone")
     if tz and not (Path("/usr/share/zoneinfo") / tz).is_file():
         die(f"config: [locale] timezone '{tz}' does not exist (e.g. Europe/Paris, Asia/Yerevan)")
+    band = cfg["wifi"].get("band", "")
+    if band not in ("", "a", "bg"):
+        die("config: [wifi] band must be 'a' (5 GHz only), 'bg' (2.4 GHz only), or empty (any)")
     if not re.fullmatch(r"[a-z][a-z0-9-]*", cfg["fleet"]["hostname_prefix"]):
         die("config: [fleet] hostname_prefix must be lowercase letters/digits/hyphens")
     if not (8 <= len(cfg["wifi"]["password"]) <= 63):
@@ -206,12 +209,18 @@ def render_user_data(cfg: dict, hostname: str) -> str:
     # The nmcli tweak pins the WiFi MAC to the hardware one, so the address
     # we registered with the lab is guaranteed to be the one that associates.
     cmds = [
+        # Grow the root partition/fs to fill the card: Trixie's own
+        # rpi-resize.service is ConditionFirstBoot=yes (machine-id based), so
+        # it never fires on golden-image clones. growpart exits nonzero on
+        # no-change; the '|| true' added below keeps that harmless.
+        "growpart /dev/mmcblk0 2; resize2fs /dev/mmcblk0p2",
         f"raspi-config nonint do_wifi_country {wifi['country']}",
         "rfkill unblock wifi",
         "modprobe g_ether",
         "rpi-usb-gadget on -f",
         f"nmcli connection modify {shlex.quote('netplan-wlan0-' + wifi['ssid'])} "
-        "802-11-wireless.cloned-mac-address permanent",
+        "802-11-wireless.cloned-mac-address permanent"
+        + (f" 802-11-wireless.band {wifi['band']}" if wifi.get("band") else ""),
         # Diagnostic report on the boot partition — readable from any laptop
         # when the Pi is unreachable. Runs last, after the commands above.
         "{ date; echo '--- cloud-init:'; cloud-init status --long; "
@@ -259,6 +268,13 @@ def render_user_data(cfg: dict, hostname: str) -> str:
         f"    password: {q(fleet['password'])}",
         "    type: text",
         "ssh_pwauth: true",
+        # RPi OS disables cloud-init host-key management (99_raspberry-pi.cfg:
+        # ssh_deletekeys false, genkeytypes []) and its own regeneration only
+        # fires on an image's first boot EVER — so golden-image clones would
+        # all share host keys. Overriding here makes cc_ssh regenerate them
+        # per instance, i.e. on every (re-)provision.
+        "ssh_deletekeys: true",
+        "ssh_genkeytypes: [rsa, ecdsa, ed25519]",
         "runcmd:",
     ]
     for cmd in cmds:
@@ -281,6 +297,9 @@ def render_network_config(cfg: dict) -> str:
         f"        {q(wifi['ssid'])}:",
         f"          password: {q(wifi['password'])}",
     ]
+    if wifi.get("band"):
+        # netplan vocabulary; renders to NM wifi.band a / bg
+        lines.append(f"          band: {q('5GHz' if wifi['band'] == 'a' else '2.4GHz')}")
     if wifi.get("hidden"):
         lines.append("          hidden: true")
     return "\n".join(lines) + "\n"
