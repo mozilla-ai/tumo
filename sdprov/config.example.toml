@@ -15,6 +15,7 @@ ssid = "LabWiFi"
 password = "labpassword"
 country = "AM"           # ISO 3166-1 alpha-2 regulatory domain (AM = Armenia)
 hidden = false
+band = ""                # "" = any, "a" = 5 GHz only, "bg" = 2.4 GHz only (nmcli terms)
 
 [locale]
 timezone = "Asia/Yerevan"

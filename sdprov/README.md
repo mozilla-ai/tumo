@@ -81,11 +81,60 @@ Before imaging the master card (see repo discussion):
    password on 20 cards.
 3. Same username in `config.toml` as the user on the golden image.
 4. Optional: `sudo apt clean`, `rm -rf ~/.cache/uv`, clear shell history.
-5. Do **not** wipe cloud-init state or ssh host keys — the `instance-id` bump
-   handles re-provisioning per clone.
+5. Do **not** wipe cloud-init state or ssh host keys manually — provision's
+   `instance-id` bump re-runs per-card setup, and its `ssh_deletekeys`
+   override regenerates host keys on each provisioned clone (RPi OS disables
+   cloud-init key management by default, and its own regeneration only fires
+   on an image's first boot ever — same for disk expansion, which provision
+   also handles itself).
 6. Shrink the image (PiShrink) so it flashes fast and fits every card.
 
 After flashing a clone, run `provision` on it as usual.
+
+## Creating the golden image file
+
+1. Finalize the card (checklist above: `nmcli connection show`, delete every
+   WiFi profile, `apt clean`, clear caches/history) and `sudo poweroff`.
+2. Read the card into an image on the Mac (~10 min for 32 GB on USB-3):
+
+   ```bash
+   diskutil list                          # find the card, e.g. /dev/disk4 — CHECK THE SIZE
+   sudo diskutil unmountDisk /dev/disk4
+   sudo dd if=/dev/rdisk4 of=~/golden.img bs=4m status=progress
+   diskutil eject /dev/disk4
+   ```
+
+3. Shrink + compress with PiShrink (Linux-only; use Docker Desktop):
+
+   ```bash
+   docker run --rm --privileged -v ~/:/work debian:stable-slim bash -c '
+     apt-get update -qq && apt-get install -y -qq wget parted e2fsprogs xz-utils >/dev/null &&
+     wget -qO /usr/local/bin/pishrink https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh &&
+     chmod +x /usr/local/bin/pishrink &&
+     pishrink -s -Z /work/golden.img'
+   ```
+
+   `-s` is required: it skips PiShrink's legacy auto-expand hack (pre-Trixie
+   mechanism; cloud-init growpart re-expands the filesystem instead, triggered
+   by provision's instance-id bump). `-Z` produces `golden.img.xz`, which
+   rpi-imager consumes directly. No Docker? Run the same on a Pi against the
+   .img on external storage.
+
+4. Flash clones with Raspberry Pi Imager: Choose OS → **Use custom** →
+   `golden.img.xz`. **Decline Imager's OS customization** — it cannot
+   re-trigger cloud-init on an already-booted image (cached instance-id) and
+   would silently half-apply. Run `uv run sdprov.py provision` on each card
+   after flashing instead.
+5. Validate the first clone before mass-flashing: boot it and check it comes
+   up under its **new** hostname (re-personalization works), `df -h /` shows
+   the filesystem filling the card, and there is no ssh host-key reuse
+   warning versus another clone (key regeneration works).
+
+Note on disk expansion: Trixie's own `rpi-resize.service` only fires on an
+image's very first boot ever (`ConditionFirstBoot=yes`, i.e. machine-id not
+yet initialized), so golden-image clones would never expand on their own.
+provision therefore injects a `growpart`+`resize2fs` first-boot command —
+expansion happens on every provisioned card automatically.
 
 ## Notes
 
